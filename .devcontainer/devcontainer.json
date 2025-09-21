@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <title>School Selector (with Login)</title>
+  <style>
+    body {
+      font-family: 'Khmer OS Battambang', Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h2 { text-align: center; color: #2563eb; }
+
+    /* Login Box */
+    #loginBox {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    #loginBox h2 { margin-bottom: 20px; }
+    #loginBox input {
+      width: 100%; padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc; border-radius: 5px;
+    }
+    #loginBox button {
+      width: 100%; padding: 10px;
+      background: #2563eb; color: white;
+      font-weight: bold; border: none; border-radius: 5px;
+      cursor: pointer;
+    }
+    #loginBox button:hover { background: #1d4ed8; }
+    .error { color: red; font-size: 14px; margin-top: 5px; }
+
+    /* School Selector Box */
+    #schoolApp { display: none; }
+    .form-group { margin: 15px 0; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    select, input, button {
+      width: 100%; padding: 10px;
+      border: 1px solid #ccc; border-radius: 5px;
+    }
+    .info-box {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f1f5f9;
+      border-left: 4px solid #2563eb;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Form -->
+  <div id="loginBox">
+    <h2>🔐 ចូលប្រើប្រាស់ប្រព័ន្ធ</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+    <p class="error" id="errorMsg"></p>
+  </div>
+
+  <!-- School Selector App -->
+  <div class="container" id="schoolApp">
+    <h2>ជ្រើសរើសសាលារៀន</h2>
+
+    <div class="form-group">
+      <label>រាជធានី/ខេត្ត (Province)</label>
+      <select id="province">
+        <option value="">-- ជ្រើស Province --</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>ក្រុង/ស្រុក/ខណ្ឌ (District)</label>
+      <select id="district">
+        <option value="">-- ជ្រើស District --</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>ឃុំ/សង្កាត់ (Commune)</label>
+      <select id="commune">
+        <option value="">-- ជ្រើស Commune --</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>ឈ្មោះសាលា (School)</label>
+      <select id="school">
+        <option value="">-- ជ្រើស School --</option>
+      </select>
+    </div>
+
+    <div class="info-box" id="schoolInfo">
+      <strong>ព័ត៌មានសាលា:</strong>
+      <p>កូដសាលា: <span id="schoolCode">-</span></p>
+      <p>ប្រភេទសាលា: <span id="schoolType">-</span></p>
+    </div>
+  </div>
+
+  <script>
+    // --- LOGIN SYSTEM ---
+    const loginBtn = document.getElementById("loginBtn");
+    const errorMsg = document.getElementById("errorMsg");
+    const loginBox = document.getElementById("loginBox");
+    const schoolApp = document.getElementById("schoolApp");
+
+    // Example username & password (អ្នកអាចផ្លាស់ប្តូរតាមចិត្ត)
+    const VALID_USER = "admin";
+    const VALID_PASS = "12345";
+
+    loginBtn.addEventListener("click", () => {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+
+      if (user === VALID_USER && pass === VALID_PASS) {
+        loginBox.style.display = "none";
+        schoolApp.style.display = "block";
+      } else {
+        errorMsg.textContent = "⚠️ Username ឬ Password មិនត្រឹមត្រូវ!";
+      }
+    });
+
+    // --- SCHOOL SELECTOR DATA ---
+    const data = {
+      "បន្ទាយមានជ័យ": {
+        "ស្រុកភ្នំស្រុក": {
+          "ស្ពានស្រែង": [
+            { name: "សាលាបឋមសិក្សារោគ", code: "01030401017", type: "សាលាបឋមសិក្សា" },
+            { name: "សាលាមធ្យមសិក្សាកំពង់ស្រែង", code: "01030402005", type: "សាលាមធ្យមសិក្សា" }
+          ]
+        }
+      },
+      "បាត់ដំបង": {
+        "ស្រុកសំឡូត": {
+          "ស៊ុង": [
+            { name: "សាលាបឋមសិក្សាកញ្ជាំង", code: "02050103012", type: "សាលាបឋមសិក្សា" }
+          ]
+        }
+      }
+    };
+
+    const provinceSelect = document.getElementById("province");
+    const districtSelect = document.getElementById("district");
+    const communeSelect = document.getElementById("commune");
+    const schoolSelect = document.getElementById("school");
+    const schoolCode = document.getElementById("schoolCode");
+    const schoolType = document.getElementById("schoolType");
+
+    // Load provinces
+    Object.keys(data).forEach(province => {
+      let opt = document.createElement("option");
+      opt.value = province;
+      opt.textContent = province;
+      provinceSelect.appendChild(opt);
+    });
+
+    // Province change
+    provinceSelect.addEventListener("change", () => {
+      districtSelect.innerHTML = '<option value="">-- ជ្រើស District --</option>';
+      communeSelect.innerHTML = '<option value="">-- ជ្រើស Commune --</option>';
+      schoolSelect.innerHTML = '<option value="">-- ជ្រើស School --</option>';
+      schoolCode.textContent = "-";
+      schoolType.textContent = "-";
+
+      let districts = data[provinceSelect.value];
+      if (districts) {
+        Object.keys(districts).forEach(district => {
+          let opt = document.createElement("option");
+          opt.value = district;
+          opt.textContent = district;
+          districtSelect.appendChild(opt);
+        });
+      }
+    });
+
+    // District change
+    districtSelect.addEventListener("change", () => {
+      communeSelect.innerHTML = '<option value="">-- ជ្រើស Commune --</option>';
+      schoolSelect.innerHTML = '<option value="">-- ជ្រើស School --</option>';
+      schoolCode.textContent = "-";
+      schoolType.textContent = "-";
+
+      let communes = data[provinceSelect.value][districtSelect.value];
+      if (communes) {
+        Object.keys(communes).forEach(commune => {
+          let opt = document.createElement("option");
+          opt.value = commune;
+          opt.textContent = commune;
+          communeSelect.appendChild(opt);
+        });
+      }
+    });
+
+    // Commune change
+    communeSelect.addEventListener("change", () => {
+      schoolSelect.innerHTML = '<option value="">-- ជ្រើស School --</option>';
+      schoolCode.textContent = "-";
+      schoolType.textContent = "-";
+
+      let schools = data[provinceSelect.value][districtSelect.value][communeSelect.value];
+      if (schools) {
+        schools.forEach(school => {
+          let opt = document.createElement("option");
+          opt.value = school.code;
+          opt.textContent = school.name;
+          opt.dataset.type = school.type;
+          schoolSelect.appendChild(opt);
+        });
+      }
+    });
+
+    // School change
+    schoolSelect.addEventListener("change", () => {
+      let selectedOption = schoolSelect.options[schoolSelect.selectedIndex];
+      schoolCode.textContent = selectedOption.value || "-";
+      schoolType.textContent = selectedOption.dataset.type || "-";
+    });
+  </script>
+</body>
+</html>
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {}
+}
